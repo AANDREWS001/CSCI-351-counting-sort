@@ -1,3 +1,6 @@
+/* Pragma OMP code */
+#include <omp.h>
+
 /* assert */
 #include <assert.h>
 
@@ -17,10 +20,16 @@ csort(unsigned const k,
   if (NULL == count) {
     return -1;
   }
-
+# pragma omp parallel num_threads(4)
+{
+printf("Thread %d is executing \n", omp_get_thread_num());
+# pragma omp for
   for (unsigned i = 0; i < n; i++) {
+#   pragma omp atomic
     count[in[i]]++;
+//printf("Count %1ld", count[in[i]]);
   }
+}
 
   unsigned total = 0;
   for (unsigned i = 0; i <= k; i++) {
@@ -29,11 +38,19 @@ csort(unsigned const k,
     total += counti;
   }
 
+# pragma omp parallel num_threads(4)
+{
+# pragma omp for
   for (unsigned i = 0; i < n; i++) {
+#   pragma omp critical
+{
     out[count[in[i]]] = in[i];
     count[in[i]]++;
-  }
 
+//printf("Count %1ld", count[in[i]]);
+}
+  }
+}
   free(count);
 
   return 0;
